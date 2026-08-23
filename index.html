@@ -379,21 +379,21 @@ function todayStr() { return dateStr(new Date()); }
 
 async function loadData() {
   try {
-    const log = await window.storage.get('daily-log', false);
-    dailyLog = log ? JSON.parse(log.value) : {};
+    const log = localStorage.getItem('daily-log');
+    dailyLog = log ? JSON.parse(log) : {};
   } catch(e) { dailyLog = {}; }
   try {
-    const ts = await window.storage.get('task-state', false);
-    taskState = ts ? JSON.parse(ts.value) : {};
+    const ts = localStorage.getItem('task-state');
+    taskState = ts ? JSON.parse(ts) : {};
   } catch(e) { taskState = {}; }
 }
 
 async function saveDailyLog() {
-  try { await window.storage.set('daily-log', JSON.stringify(dailyLog), false); }
+  try { localStorage.setItem('daily-log', JSON.stringify(dailyLog)); }
   catch(e) { console.error('save failed', e); }
 }
 async function saveTaskState() {
-  try { await window.storage.set('task-state', JSON.stringify(taskState), false); }
+  try { localStorage.setItem('task-state', JSON.stringify(taskState)); }
   catch(e) { console.error('save failed', e); }
 }
 
