@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Build Log — 6 Month Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #1B2430;
+  --card: #232E3D;
+  --card-hi: #2B3A4C;
+  --amber: #E8A33D;
+  --amber-dim: #6B5530;
+  --coral: #E8756A;
+  --sage: #86B08A;
+  --text: #F2EDE4;
+  --text-dim: #9AA5B3;
+  --line: #34445A;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Work Sans', sans-serif;
+  min-height: 100vh;
+  padding: 32px 20px 80px;
+}
+
+.wrap { max-width: 780px; margin: 0 auto; }
+
+h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 2rem;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.sub { color: var(--text-dim); font-size: 0.92rem; margin-bottom: 28px; }
+
+/* Streak hero */
+.hero {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.streak-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2.6rem;
+  font-weight: 600;
+  color: var(--amber);
+  line-height: 1;
+}
+
+.streak-label { color: var(--text-dim); font-size: 0.82rem; margin-top: 4px; }
+
+.best-streak {
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.best-streak b { color: var(--sage); font-size: 1.1rem; }
+
+.checkin-btn {
+  background: var(--amber);
+  color: var(--ink);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+.checkin-btn:hover { background: #f0b559; }
+.checkin-btn:active { transform: scale(0.97); }
+.checkin-btn.done {
+  background: var(--card-hi);
+  color: var(--sage);
+  border: 1px solid var(--sage);
+  cursor: default;
+}
+
+/* Lantern strand */
+.strand {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+
+.lantern {
+  width: 16px;
+  height: 20px;
+  border-radius: 4px 4px 8px 8px;
+  background: var(--card-hi);
+  border: 1.5px solid var(--line);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.lantern::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 5px;
+  background: var(--line);
+}
+
+.lantern.lit {
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 8px rgba(232, 163, 61, 0.6);
+}
+.lantern.lit::before { background: var(--amber-dim); }
+
+.strand-caption {
+  width: 100%;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Overall progress */
+.overall {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.overall-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--card-hi);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.overall-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--coral), var(--amber));
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+.overall-pct {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--amber);
+  min-width: 42px;
+  text-align: right;
+}
+
+/* Month tabs */
+.tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  padding-bottom: 4px;
+}
+.tab {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tab.active { background: var(--amber); color: var(--ink); border-color: var(--amber); font-weight: 600; }
+
+.month-progress { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; font-family: 'IBM Plex Mono', monospace; }
+
+/* Week cards */
+.week {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.week-head {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.week-title { font-weight: 600; font-size: 0.95rem; }
+.week-dates { color: var(--text-dim); font-size: 0.78rem; font-family: 'IBM Plex Mono', monospace; }
+.week-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--sage);
+  background: rgba(134,176,138,0.12);
+  padding: 3px 9px;
+  border-radius: 10px;
+}
+.week-body { padding: 0 18px 16px; display: none; }
+.week-body.open { display: block; }
+
+.task {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+.task:first-child { border-top: none; }
+.check {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--text-dim);
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.task.done .check { background: var(--sage); border-color: var(--sage); color: var(--ink); }
+.task.done .task-text { color: var(--text-dim); text-decoration: line-through; }
+.task-text { font-size: 0.9rem; line-height: 1.4; }
+
+.reset-link {
+  text-align: center;
+  margin-top: 28px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.loading { text-align: center; color: var(--text-dim); padding: 40px; font-family: 'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Build Log</h1>
+  <div class="sub">6-month backend + AI engineering plan — check it, don't skip it.</div>
+
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="streak-num" id="streakNum">–</div>
+        <div class="streak-label">day streak</div>
+      </div>
+      <div class="best-streak">Longest streak<br><b id="bestStreak">–</b></div>
+      <button class="checkin-btn" id="checkinBtn">Mark today done</button>
+    </div>
+    <div class="strand" id="strand"></div>
+    <div class="strand-caption">last 30 days</div>
+  </div>
+
+  <div class="overall">
+    <div class="overall-bar-track"><div class="overall-bar-fill" id="overallFill" style="width:0%"></div></div>
+    <div class="overall-pct" id="overallPct">0%</div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="month-progress" id="monthProgress"></div>
+  <div id="weeksContainer" class="loading">Loading your plan…</div>
+
+  <div class="reset-link" id="resetLink">reset all progress</div>
+</div>
+
+<script>
+const PLAN = [
+  { m: 1, label: "Month 1", range: "Aug 24 – Sep 20", weeks: [
+    { w: 1, dates: "Aug 24–30", tasks: [
+      "Set up public LeetCode profile, solve 5 easy (arrays/strings)",
+      "Read System Design Primer intro + scalability basics",
+      "Write why DeepEcom used Effect-TS over async/await",
+      "Enroll in one paid AI course with a deadline" ]},
+    { w: 2, dates: "Aug 31–Sep 6", tasks: [
+      "5 more LeetCode easy (hashing/two-pointers)",
+      "PostgreSQL indexing basics — first 45 min",
+      "Write why XState was used over boolean flags",
+      "Send weekly check-in message" ]},
+    { w: 3, dates: "Sep 7–13", tasks: [
+      "5 LeetCode, mix in 2 medium",
+      "PostgreSQL: transactions + normalization",
+      "Write the N+1 bug fix as a STAR story",
+      "Send weekly check-in message" ]},
+    { w: 4, dates: "Sep 14–20", tasks: [
+      "5 LeetCode mixed",
+      "System design: load balancing + caching",
+      "Write the embedding-model debugging story",
+      "Milestone: explain all 3 stories out loud, under 2 min each" ]},
+  ]},
+  { m: 2, label: "Month 2", range: "Sep 21 – Oct 18", weeks: [
+    { w: 5, dates: "Sep 21–27", tasks: [
+      "NeetCode 150: arrays, two pointers (3+ problems)",
+      "System design: database sharding",
+      "Start URL shortener design doc" ]},
+    { w: 6, dates: "Sep 28–Oct 4", tasks: [
+      "NeetCode: sliding window patterns",
+      "System design: message queues",
+      "Finish URL shortener design doc" ]},
+    { w: 7, dates: "Oct 5–11", tasks: [
+      "NeetCode: binary search, linked lists",
+      "Write rate limiter design doc",
+      "Read about consistency models" ]},
+    { w: 8, dates: "Oct 12–18", tasks: [
+      "NeetCode continued",
+      "Milestone: 25+ solved on public profile",
+      "Review week — adjust pace honestly" ]},
+  ]},
+  { m: 3, label: "Month 3", range: "Oct 19 – Nov 15", weeks: [
+    { w: 9, dates: "Oct 19–25", tasks: [
+      "3Blue1Brown: attention mechanism video",
+      "Learn how vector search / HNSW works under the hood" ]},
+    { w: 10, dates: "Oct 26–Nov 1", tasks: [
+      "Learn LoRA/PEFT concepts — when to fine-tune vs RAG vs prompt",
+      "Small hands-on fine-tune exercise in Python" ]},
+    { w: 11, dates: "Nov 2–8", tasks: [
+      "Chunking, retrieval, re-ranking deep dive",
+      "Learn evals — how to measure if a pipeline actually works" ]},
+    { w: 12, dates: "Nov 9–15", tasks: [
+      "Agentic loops, error recovery patterns",
+      "Read Anthropic docs on tool use",
+      "Start portfolio project" ]},
+  ]},
+  { m: 4, label: "Month 4", range: "Nov 16 – Dec 13", weeks: [
+    { w: 13, dates: "Nov 16–22", tasks: [ "Keep building portfolio project" ]},
+    { w: 14, dates: "Nov 23–29", tasks: [ "Finish + polish portfolio project", "Write a real design-decision README" ]},
+    { w: 15, dates: "Nov 30–Dec 6", tasks: [ "Push to GitHub with clean commit history", "Rebuild resume — SDE version" ]},
+    { w: 16, dates: "Dec 7–13", tasks: [ "Rebuild resume — AI Engineer version", "Milestone: project genuinely finished, not 80%" ]},
+  ]},
+  { m: 5, label: "Month 5", range: "Dec 14 – Jan 10", weeks: [
+    { w: 17, dates: "Dec 14–20", tasks: [ "Book a mock interview 2 weeks out", "Timed LeetCode medium ×3" ]},
+    { w: 18, dates: "Dec 21–27", tasks: [ "Tighten STAR stories from Month 1", "Timed LeetCode medium ×3" ]},
+    { w: 19, dates: "Dec 28–Jan 3", tasks: [ "Do the booked mock interview", "Fix gaps it revealed" ]},
+    { w: 20, dates: "Jan 4–10", tasks: [ "System design mocks ×2 under time pressure", "Book second mock interview" ]},
+  ]},
+  { m: 6, label: "Month 6", range: "Jan 11 – Feb 7", weeks: [
+    { w: 21, dates: "Jan 11–17", tasks: [ "Message 5 referral contacts", "Apply to fresh postings within 48hrs" ]},
+    { w: 22, dates: "Jan 18–24", tasks: [ "Message 5 more referral contacts", "Keep DSA warm ×2/week" ]},
+    { w: 23, dates: "Jan 25–31", tasks: [ "Interview cycles — log gaps after each one", "Second mock interview" ]},
+    { w: 24, dates: "Feb 1–7", tasks: [ "Keep applying + interviewing", "Negotiate using portfolio + architecture depth" ]},
+  ]},
+];
+
+let dailyLog = {};
+let taskState = {};
+let activeMonth = 1;
+
+function dateStr(d) { return d.toISOString().slice(0,10); }
+function todayStr() { return dateStr(new Date()); }
+
+async function loadData() {
+  try {
+    const log = await window.storage.get('daily-log', false);
+    dailyLog = log ? JSON.parse(log.value) : {};
+  } catch(e) { dailyLog = {}; }
+  try {
+    const ts = await window.storage.get('task-state', false);
+    taskState = ts ? JSON.parse(ts.value) : {};
+  } catch(e) { taskState = {}; }
+}
+
+async function saveDailyLog() {
+  try { await window.storage.set('daily-log', JSON.stringify(dailyLog), false); }
+  catch(e) { console.error('save failed', e); }
+}
+async function saveTaskState() {
+  try { await window.storage.set('task-state', JSON.stringify(taskState), false); }
+  catch(e) { console.error('save failed', e); }
+}
+
+function computeStreak() {
+  let streak = 0;
+  let d = new Date();
+  if (!dailyLog[todayStr()]) { d.setDate(d.getDate() - 1); }
+  while (dailyLog[dateStr(d)]) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function computeBestStreak() {
+  const dates = Object.keys(dailyLog).filter(k => dailyLog[k]).sort();
+  if (!dates.length) return 0;
+  let best = 1, cur = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i-1]);
+    const currD = new Date(dates[i]);
+    const diff = (currD - prev) / 86400000;
+    if (diff === 1) { cur++; best = Math.max(best, cur); }
+    else { cur = 1; }
+  }
+  return best;
+}
+
+function renderStreak() {
+  document.getElementById('streakNum').textContent = computeStreak();
+  document.getElementById('bestStreak').innerHTML = computeBestStreak() + ' days';
+  const btn = document.getElementById('checkinBtn');
+  if (dailyLog[todayStr()]) {
+    btn.textContent = '✓ Done for today';
+    btn.classList.add('done');
+  } else {
+    btn.textContent = 'Mark today done';
+    btn.classList.remove('done');
+  }
+}
+
+function renderStrand() {
+  const strand = document.getElementById('strand');
+  strand.innerHTML = '';
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(dateStr(d));
+  }
+  days.forEach(ds => {
+    const lant = document.createElement('div');
+    lant.className = 'lantern' + (dailyLog[ds] ? ' lit' : '');
+    lant.title = ds;
+    strand.appendChild(lant);
+  });
+}
+
+function taskId(m, w, i) { return `m${m}w${w}t${i}`; }
+
+function computeOverall() {
+  let total = 0, done = 0;
+  PLAN.forEach(month => month.weeks.forEach(week => week.tasks.forEach((t, i) => {
+    total++;
+    if (taskState[taskId(month.m, week.w, i)]) done++;
+  })));
+  return { total, done, pct: total ? Math.round(done/total*100) : 0 };
+}
+
+function computeMonthProgress(m) {
+  const month = PLAN.find(x => x.m === m);
+  let total = 0, done = 0;
+  month.weeks.forEach(week => week.tasks.forEach((t, i) => {
+    total++;
+    if (taskState[taskId(m, week.w, i)]) done++;
+  }));
+  return { total, done };
+}
+
+function renderOverall() {
+  const { pct } = computeOverall();
+  document.getElementById('overallFill').style.width = pct + '%';
+  document.getElementById('overallPct').textContent = pct + '%';
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = '';
+  PLAN.forEach(month => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (month.m === activeMonth ? ' active' : '');
+    btn.textContent = month.label;
+    btn.onclick = () => { activeMonth = month.m; renderAll(); };
+    tabs.appendChild(btn);
+  });
+}
+
+function renderWeeks() {
+  const month = PLAN.find(x => x.m === activeMonth);
+  const { done, total } = computeMonthProgress(activeMonth);
+  document.getElementById('monthProgress').textContent = `${month.range}  ·  ${done}/${total} tasks done`;
+
+  const container = document.getElementById('weeksContainer');
+  container.className = '';
+  container.innerHTML = '';
+
+  month.weeks.forEach(week => {
+    const wDone = week.tasks.filter((t,i) => taskState[taskId(month.m, week.w, i)]).length;
+    const card = document.createElement('div');
+    card.className = 'week';
+
+    const head = document.createElement('div');
+    head.className = 'week-head';
+    head.innerHTML = `<div><div class="week-title">Week ${week.w}</div><div class="week-dates">${week.dates}</div></div><div class="week-badge">${wDone}/${week.tasks.length}</div>`;
+
+    const body = document.createElement('div');
+    body.className = 'week-body' + (wDone < week.tasks.length ? '' : '');
+
+    week.tasks.forEach((t, i) => {
+      const id = taskId(month.m, week.w, i);
+      const row = document.createElement('div');
+      row.className = 'task' + (taskState[id] ? ' done' : '');
+      row.innerHTML = `<div class="check">${taskState[id] ? '✓' : ''}</div><div class="task-text">${t}</div>`;
+      row.onclick = () => {
+        taskState[id] = !taskState[id];
+        saveTaskState();
+        renderWeeks();
+        renderOverall();
+      };
+      body.appendChild(row);
+    });
+
+    head.onclick = () => { body.classList.toggle('open'); };
+    card.appendChild(head);
+    card.appendChild(body);
+    container.appendChild(card);
+  });
+
+  // open first week with unfinished tasks by default
+  const firstOpen = container.querySelector('.week-body');
+  if (firstOpen) firstOpen.classList.add('open');
+}
+
+function renderAll() {
+  renderTabs();
+  renderWeeks();
+  renderOverall();
+  renderStreak();
+  renderStrand();
+}
+
+document.getElementById('checkinBtn').onclick = () => {
+  if (dailyLog[todayStr()]) return;
+  dailyLog[todayStr()] = true;
+  saveDailyLog();
+  renderStreak();
+  renderStrand();
+};
+
+document.getElementById('resetLink').onclick = async () => {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  dailyLog = {};
+  taskState = {};
+  await saveDailyLog();
+  await saveTaskState();
+  renderAll();
+};
+
+(async function init() {
+  await loadData();
+  renderAll();
+})();
+</script>
+</body>
+</html>
